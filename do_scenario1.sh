@@ -37,10 +37,9 @@ tmux split-window -t $NAME:0.0 -v -p 25
 
 tmux send-keys -t $NAME:0.0 './myserver' C-m
 sleep 1
-tmux send-keys -t $NAME:0.1 'curl "localhost:18300/?op=write&val=june2018"' C-m
-tmux send-keys -t $NAME:0.2 'curl "localhost:18300/?op=read"' C-m
-tmux send-keys -t $NAME:0.3 'curl "localhost:18300/?op=read"' C-m
-tmux send-keys -t $NAME:0.4 'curl "localhost:18300/?op=read"' C-m
+tmux send-keys -t $NAME:0.1 'curl "localhost:10826/?op=write&val=june2018"' C-m
+tmux send-keys -t $NAME:0.2 'curl "localhost:10826/?op=read"' C-m
+tmux send-keys -t $NAME:0.3 'curl "localhost:10826/?op=read"' C-m
+tmux send-keys -t $NAME:0.4 'curl "localhost:10826/?op=read"' C-m
 
 tmux attach -t $NAME
-
