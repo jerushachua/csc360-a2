@@ -6,6 +6,7 @@
 void initialize_readers_writer();
 void rw_read(char *, int);
 void rw_write(char *, int);
-void read_resource(); 
+void read_resource(resource_t data, char *value);
+void write_resource(resource_t data, char *value);
 
 #endif
