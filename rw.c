@@ -82,7 +82,7 @@ void rw_write(char *value, int len) {
     pthread_mutex_lock(&m);
     writers--;
     pthread_cond_signal(&writerQ);
-    pthread_broadcast_signal(&readerQ);
+    pthread_cond_broadcast(&readerQ);
     pthread_mutex_unlock(&m);
 
 }
