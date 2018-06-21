@@ -49,7 +49,7 @@ void rw_read(char *value, int len) {
     readers++;
     pthread_mutex_unlock(&m);
 
-    read_resource(data, value, len);
+    read_resource(&data, value, len);
 
     if(--readers == 0){
         pthread_cond_signal(&writerQ);
@@ -75,7 +75,7 @@ void rw_write(char *value, int len) {
     writers++;
     pthread_mutex_unlock(&m);
 
-    write_resource(data, value, len);
+    write_resource(&data, value, len);
 
     pthread_mutex_lock(&m);
     writers--;
