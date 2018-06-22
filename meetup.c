@@ -11,7 +11,20 @@
 /*
  * Declarations for barrier shared variables -- plus concurrency-control
  * variables -- must START here.
+ *
+ * n is the meet_size
+ * mf is MEET_FIRST (1) or MEET_LAST (0)
  */
+
+typedef struct {
+  int n;
+  int count;
+  sem_t mutex;
+  sem_t turnstile1;
+  sem_t turnstile2;
+} barrier_t;
+
+
 void initialize_meetup(int n, int mf) {
     char label[100];
     int i;
@@ -26,6 +39,12 @@ void initialize_meetup(int n, int mf) {
      * Initialize the shared structures, including those used for
      * synchronization.
      */
+     barrier_t barrier;
+
+     sem_init(&barrier.mutex, 0, 1);
+     sem_init(&barrier.turnstile1, 0, 0);
+     sem_init(&barrier.turnstile2, 0, 0);
+
 }
 
 
