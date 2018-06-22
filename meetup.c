@@ -24,6 +24,7 @@ typedef struct {
   sem_t turnstile2;
 } barrier_t;
 
+barrier_t barrier;
 
 void initialize_meetup(int n, int mf) {
     char label[100];
@@ -39,8 +40,6 @@ void initialize_meetup(int n, int mf) {
      * Initialize the shared structures, including those used for
      * synchronization.
      */
-     barrier_t barrier;
-
      sem_init(&barrier.mutex, 0, 1);
      sem_init(&barrier.turnstile1, 0, 0);
      sem_init(&barrier.turnstile2, 0, 0);
@@ -49,5 +48,26 @@ void initialize_meetup(int n, int mf) {
 
 
 void join_meetup(char *value, int len) {
-    printf("NOTHING IMPLEMENTED YET FOR join_meetup\n");
+
+    // part 1
+    sem_wait(&barrier.mutex);
+    if(++barrier.count == barrier.n){
+        int i;
+        for(i = 0; i < barrier.n; i++){
+            sem_post(&barrier.turnstile1);
+        }
+    }
+    sem_post(&barrier.mutex);
+    sem_wait(&barrier.turnstile1);
+
+    // part 2
+    sem_wait(&barrier.mutex);
+    if(--barrier.count == 0){
+        int i;
+        for(i = 0; i < barrier.n; i++){
+            sem_post(&barrier.turnstile2);
+        }
+    }
+    sem_post(&barrier.mutex);
+    sem_wait(&barrier.turnstile2);
 }
