@@ -23,8 +23,6 @@ typedef struct {
   int n;
   int count;
   int mf;
-  char* codeword;
-  int update;
   sem_t mutex;
   sem_t turnstile1;
   sem_t turnstile2;
@@ -53,7 +51,6 @@ void initialize_meetup(int n, int mf) {
      barrier.n = n;
      barrier.count = 0;
      barrier.mf = mf;
-     barrier.update = 0;
 
 }
 
@@ -64,7 +61,7 @@ void initialize_meetup(int n, int mf) {
  *  - if meetfirst, only the first thread to arrive will copy
  *
  * if not enough threads have arrived (barrier.n) then wait until
- *   enough threads have arrived before copying to barrier.codeword
+ *   enough threads have arrived before copying to codeword
  *
  */
 void join_meetup(char *value, int len) {
@@ -73,17 +70,11 @@ void join_meetup(char *value, int len) {
 
     sem_wait(&barrier.mutex);
     if( (barrier.count == 0) && (barrier.mf == MEET_FIRST) ){
-        barrier.codeword = value;
-        barrier.update = 1;
         write_resource(&codeword, value, len);
-        printf("stored value: %s\n", barrier.codeword);
 
     } else if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
-            barrier.codeword = value;
-            barrier.update = 1;
             write_resource(&codeword, value, len);
-            printf("stored value: %s\n", barrier.codeword);
         }
         int i;
         for(i = 0; i < barrier.n; i++){
@@ -96,13 +87,14 @@ void join_meetup(char *value, int len) {
     sem_post(&barrier.mutex);
     sem_wait(&barrier.turnstile1); // once we have n threads in a group, release the n threads
 
+    // critical section between turnstiles
+    read_resource(&codeword, value, len);
+    barrier.count--;
 
     sem_wait(&barrier.mutex);
-    barrier.count--;
 
     // if barrier codeword is not updated, update our own codeword
     // ie if we're not the first/last thread
-    if( barrier.update == 0 ) write_resource(&codeword, barrier.codeword, len);
 
     if(--barrier.count == 0){
         int i;
