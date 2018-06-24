@@ -69,13 +69,14 @@ void initialize_meetup(int n, int mf) {
  */
 void join_meetup(char *value, int len) {
 
+    printf("n: %d\n", barrier.n);
+
     sem_wait(&barrier.mutex);
     if( (barrier.count == 0) && (barrier.mf == MEET_FIRST) ){
         barrier.codeword = value;
         barrier.update = 1;
         write_resource(&codeword, value, len);
         printf("stored value: %s\n", barrier.codeword);
-        barrier.count++;
 
     } else if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
@@ -89,10 +90,8 @@ void join_meetup(char *value, int len) {
             sem_post(&barrier.turnstile1);
         }
         barrier.count = 0;
-
-    } else {
-        barrier.count++;
     }
+    barrier.count++;
     printf("number of threads so far: %d\n", barrier.count);
     sem_post(&barrier.mutex);
     sem_wait(&barrier.turnstile1); // once we have n threads in a group, release the n threads
