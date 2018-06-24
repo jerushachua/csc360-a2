@@ -83,7 +83,6 @@ void join_meetup(char *value, int len) {
             sem_post(&barrier.turnstile1);
         }
         barrier.count = 0;
-        return;
         
     } else {
         barrier.count++;
