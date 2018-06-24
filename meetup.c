@@ -71,6 +71,7 @@ void join_meetup(char *value, int len) {
         barrier.codeword = value;
         write_resource(&codeword, value, len);
         printf("stored value: %s\n", barrier.codeword);
+        barrier.count++; 
 
     } else if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
@@ -83,7 +84,7 @@ void join_meetup(char *value, int len) {
             sem_post(&barrier.turnstile1);
         }
         barrier.count = 0;
-        
+
     } else {
         barrier.count++;
     }
