@@ -75,13 +75,15 @@ void join_meetup(char *value, int len) {
     if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
             barrier.codeword = value;
-            write_resource(&codeword, value, len); 
+            write_resource(&codeword, value, len);
             printf("stored value: %s\n", barrier.codeword);
         }
         int i;
         for(i = 0; i < barrier.n; i++){
             sem_post(&barrier.turnstile1);
         }
+        barrier.count = 0;
+        return; 
     }
     sem_post(&barrier.mutex);
     sem_wait(&barrier.turnstile1);
