@@ -16,6 +16,7 @@
  * count is the number of threads that have arrived at the barrier
  * mf is MEET_FIRST (1) or MEET_LAST (0)
  * codeword is the word to be shared to all threads
+ * update is to let the barrier know that codeword is set
  */
 
 typedef struct {
@@ -23,6 +24,7 @@ typedef struct {
   int count;
   int mf;
   char* codeword;
+  int update;
   sem_t mutex;
   sem_t turnstile1;
   sem_t turnstile2;
@@ -51,6 +53,7 @@ void initialize_meetup(int n, int mf) {
      barrier.n = n;
      barrier.count = 0;
      barrier.mf = mf;
+     barrier.update = 0;
 
 }
 
@@ -69,13 +72,15 @@ void join_meetup(char *value, int len) {
     sem_wait(&barrier.mutex);
     if( (barrier.count == 0) && (barrier.mf == MEET_FIRST) ){
         barrier.codeword = value;
+        barrier.update = 1;
         write_resource(&codeword, value, len);
         printf("stored value: %s\n", barrier.codeword);
-        barrier.count++; 
+        barrier.count++;
 
     } else if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
             barrier.codeword = value;
+            barrier.update = 1;
             write_resource(&codeword, value, len);
             printf("stored value: %s\n", barrier.codeword);
         }
@@ -90,10 +95,16 @@ void join_meetup(char *value, int len) {
     }
     printf("number of threads so far: %d\n", barrier.count);
     sem_post(&barrier.mutex);
-    sem_wait(&barrier.turnstile1);
+    sem_wait(&barrier.turnstile1); // once we have n threads in a group, release the n threads
 
 
     sem_wait(&barrier.mutex);
+    barrier.count--;
+
+    // if barrier codeword is not updated, update our own codeword
+    // ie if we're not the first/last thread
+    if( barrier.update == 0 ) write_resource(&codeword, barrier.codeword, len);
+
     if(--barrier.count == 0){
         int i;
         for(i = 0; i < barrier.n; i++){
