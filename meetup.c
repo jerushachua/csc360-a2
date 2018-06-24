@@ -71,8 +71,8 @@ void join_meetup(char *value, int len) {
         barrier.codeword = value;
         write_resource(&codeword, value, len);
         printf("stored value: %s\n", barrier.codeword);
-    }
-    if(++barrier.count == barrier.n){
+
+    } else if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
             barrier.codeword = value;
             write_resource(&codeword, value, len);
@@ -84,6 +84,9 @@ void join_meetup(char *value, int len) {
         }
         barrier.count = 0;
         return;
+        
+    } else {
+        barrier.count++;
     }
     printf("number of threads so far: %d\n", barrier.count);
     sem_post(&barrier.mutex);
