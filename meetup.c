@@ -45,12 +45,13 @@ void initialize_meetup(int n, int mf) {
      * Initialize the shared structures, including those used for
      * synchronization.
      */
-     sem_init(&barrier.mutex, 0, 1);
-     sem_init(&barrier.turnstile1, 0, 0);
-     sem_init(&barrier.turnstile2, 0, 0);
      barrier.n = n;
      barrier.count = 0;
      barrier.mf = mf;
+
+     sem_init(&barrier.mutex, 0, 1);
+     sem_init(&barrier.turnstile1, barrier.count, 0);
+     sem_init(&barrier.turnstile2, barrier.count, 0);
 
 }
 
@@ -79,6 +80,7 @@ void join_meetup(char *value, int len) {
             sem_post(&barrier.turnstile1);
         }
     }
+    printf("sem_getvalue(): %d\n", sem_getvalue(&barrier.turnstile1, &barrier.count) );
     printf("number of threads so far: %d\n", barrier.count);
     sem_post(&barrier.mutex);
     sem_wait(&barrier.turnstile1); // once we have n threads in a group, release the n threads
