@@ -15,7 +15,7 @@
  * n is the meet_size
  * count is the number of threads that have arrived at the barrier
  * mf is MEET_FIRST (1) or MEET_LAST (0)
- * codeword is the word to be shared to all threads 
+ * codeword is the word to be shared to all threads
  */
 
 typedef struct {
@@ -47,7 +47,8 @@ void initialize_meetup(int n, int mf) {
      sem_init(&barrier.mutex, 0, 1);
      sem_init(&barrier.turnstile1, 0, 0);
      sem_init(&barrier.turnstile2, 0, 0);
-     barrier.count = n;
+     barrier.n = n;
+     barrier.count = 0;
      barrier.mf = mf;
 
 }
@@ -64,9 +65,16 @@ void initialize_meetup(int n, int mf) {
  */
 void join_meetup(char *value, int len) {
 
-    // part 1
     sem_wait(&barrier.mutex);
+    if( (barrier.count == 0) && (barrier.mf == MEET_FIRST) ){
+        barrier.codeword = value;
+        printf("stored value: %s\n", barrier.codeword);
+    }
     if(++barrier.count == barrier.n){
+        if(barrier.mf == MEET_LAST){
+            barrier.codeword = value;
+            printf("stored value: %s\n", barrier.codeword);  
+        }
         int i;
         for(i = 0; i < barrier.n; i++){
             sem_post(&barrier.turnstile1);
