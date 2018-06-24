@@ -66,8 +66,6 @@ void initialize_meetup(int n, int mf) {
  */
 void join_meetup(char *value, int len) {
 
-    printf("n: %d\n", barrier.n);
-
     sem_wait(&barrier.mutex);
     if( (barrier.count == 0) && (barrier.mf == MEET_FIRST) ){
         write_resource(&codeword, value, len);
@@ -80,7 +78,6 @@ void join_meetup(char *value, int len) {
         for(i = 0; i < barrier.n; i++){
             sem_post(&barrier.turnstile1);
         }
-        barrier.count = 0;
     }
     barrier.count++;
     printf("number of threads so far: %d\n", barrier.count);
