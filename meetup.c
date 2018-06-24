@@ -29,6 +29,7 @@ typedef struct {
 } barrier_t;
 
 barrier_t barrier;
+static resource_t codeword;
 
 void initialize_meetup(int n, int mf) {
     char label[100];
@@ -68,12 +69,14 @@ void join_meetup(char *value, int len) {
     sem_wait(&barrier.mutex);
     if( (barrier.count == 0) && (barrier.mf == MEET_FIRST) ){
         barrier.codeword = value;
+        write_resource(&codeword, value, len);
         printf("stored value: %s\n", barrier.codeword);
     }
     if(++barrier.count == barrier.n){
         if(barrier.mf == MEET_LAST){
             barrier.codeword = value;
-            printf("stored value: %s\n", barrier.codeword);  
+            write_resource(&codeword, value, len); 
+            printf("stored value: %s\n", barrier.codeword);
         }
         int i;
         for(i = 0; i < barrier.n; i++){
@@ -83,7 +86,7 @@ void join_meetup(char *value, int len) {
     sem_post(&barrier.mutex);
     sem_wait(&barrier.turnstile1);
 
-    // part 2
+
     sem_wait(&barrier.mutex);
     if(--barrier.count == 0){
         int i;
