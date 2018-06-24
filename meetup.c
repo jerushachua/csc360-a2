@@ -83,8 +83,9 @@ void join_meetup(char *value, int len) {
             sem_post(&barrier.turnstile1);
         }
         barrier.count = 0;
-        return; 
+        return;
     }
+    printf("number of threads so far: %d\n", barrier.count);
     sem_post(&barrier.mutex);
     sem_wait(&barrier.turnstile1);
 
