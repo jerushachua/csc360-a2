@@ -48,12 +48,12 @@ void initialize_meetup(int n, int mf) {
      */
      barrier.n = n;
      barrier.count1 = 0;
-     barrier.count2 = 0;
+     barrier.count2 = n;
      barrier.mf = mf;
 
      sem_init(&barrier.mutex1, 0, 1);
-     sem_init(&barrier.turnstile1, barrier.count1, 0);
-     sem_init(&barrier.turnstile2, barrier.count2, 0);
+     sem_init(&barrier.turnstile1, 0, 0);
+     sem_init(&barrier.turnstile2, 0, barrier.count2);
 
 }
 
@@ -69,6 +69,7 @@ void initialize_meetup(int n, int mf) {
  */
 void join_meetup(char *value, int len) {
 
+    sem_wait(&barrier.turnstile2);
     sem_wait(&barrier.mutex1);
     if( (barrier.count1 == 0) && (barrier.mf == MEET_FIRST) ){
         write_resource(&codeword, value, len);
@@ -82,20 +83,18 @@ void join_meetup(char *value, int len) {
             sem_post(&barrier.turnstile1);
         }
         barrier.count1 = 0;
-    } else if (barrier.mf == MEET_FIRST) {
-        barrier.count1++;
-        read_resource(&codeword, value, len);
     } else {
-        barrier.count1++; 
+        barrier.count1++;
     }
-    printf("number of threads so far for turnstile1: %d\n", barrier.count1);
     sem_post(&barrier.mutex1);
     sem_wait(&barrier.turnstile1); // once we have n threads in a group, release the n threads
 
     // critical section between turnstiles
-    printf("between turnstile1 and turnstile2\n");
-    // read_resource(&codeword, value, len);
-    barrier.count2 = barrier.n;
+    printf("in exit room: copying value \n");
+    read_resource(&codeword, value, len);
+    // barrier.count2 = barrier.n;
+
+    sem_post(&barrier.turnstile2);
 
     /*
     sem_wait(&barrier.mutex1);
