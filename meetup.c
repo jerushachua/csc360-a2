@@ -22,7 +22,6 @@
 typedef struct {
   int n;
   int count1;
-  int count2;
   int mf;
   sem_t mutex1;
   sem_t turnstile1;
@@ -48,12 +47,11 @@ void initialize_meetup(int n, int mf) {
      */
      barrier.n = n;
      barrier.count1 = 0;
-     barrier.count2 = n;
      barrier.mf = mf;
 
      sem_init(&barrier.mutex1, 0, 1);
      sem_init(&barrier.turnstile1, 0, 0);
-     sem_init(&barrier.turnstile2, 0, barrier.count2);
+     sem_init(&barrier.turnstile2, 0, barrier.n);
 
 }
 
@@ -63,9 +61,24 @@ void initialize_meetup(int n, int mf) {
  *  - if meetlast, only the last thread to arrive will copy
  *  - if meetfirst, only the first thread to arrive will copy
  *
- * if not enough threads have arrived (barrier.n) then wait until
- *   enough threads have arrived before copying to codeword
+ * turnstile2 only lets n threads in the room at a time.
+ * starting value of turnstile2 is n.
+ * starting value of turnstile1 is 0.
  *
+ * the first mutex ensures that only one thread can update the thread counter at time
+ *  - update the counter
+ *  - if the thread is the first to arrive, write_resource() to save the codeword
+ *  - if the thread is the last to arrive, also write_resource() to save the codeword
+ *  - if the thread is the last to arrive, sem_post() to turnstile1 n times to make
+ *    n threads allowed to go through the turnstile1
+ *
+ * return the first mutex before waiting at turnstile1.
+ *
+ * after the first turnstile1 is opened for the n threads, all threads copy over the
+ *   codeword using read_resource().
+ *
+ * finally, sem_post() for turnstile2 to let this group of threads leave the room
+ *   allows the next group to start filtering in.
  */
 void join_meetup(char *value, int len) {
 
@@ -87,28 +100,11 @@ void join_meetup(char *value, int len) {
         barrier.count1++;
     }
     sem_post(&barrier.mutex1);
-    sem_wait(&barrier.turnstile1); // once we have n threads in a group, release the n threads
+    sem_wait(&barrier.turnstile1); 
 
-    // critical section between turnstiles
     printf("in exit room: copying value \n");
     read_resource(&codeword, value, len);
-    // barrier.count2 = barrier.n;
 
     sem_post(&barrier.turnstile2);
 
-    /*
-    sem_wait(&barrier.mutex1);
-    barrier.count2--;
-    printf("number of threads left for turnstile2: %d\n", barrier.count2);
-
-    if( (barrier.count2-1) <= 0){
-        printf("hallo release threads for the second time\n");
-        int i;
-        for(i = 0; i < barrier.n; i++){
-            sem_post(&barrier.turnstile2);
-        }
-    }
-    sem_post(&barrier.mutex1);
-    sem_wait(&barrier.turnstile2);
-    */
 }
