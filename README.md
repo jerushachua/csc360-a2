@@ -1,5 +1,5 @@
-### CSC360 - Summer 2018
-### Mike Zastre
-### Assignment 2
+### CSC360 - Summer 2018 <br />
+### Mike Zastre <br />
+### Assignment 2 <br /> 
 
 An exercise with the reader-writer problem. 
